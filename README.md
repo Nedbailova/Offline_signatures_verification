@@ -1,4 +1,5 @@
 # Offline_signatures_verification
+Ссылка на архив приложения - https://drive.google.com/drive/folders/1Yaw1ahxBsfZLb2QllY53VkhR-HUlziew?usp=sharing
 
 Для запуска приложения необходимо установить MATLAB Runtime, для этого следует 
 зайти в main_script/for_redistribution и запусить MyAppInstaller_web.
