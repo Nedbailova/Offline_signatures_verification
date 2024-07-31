@@ -1,0 +1,73 @@
+disp("Запущенна верификация подписи.")
+disp(['Полученный класс: ', result]);
+disp(['Путь изображения: ', imgpath]);
+% Получение частей пути
+[filepath, name, ext] = fileparts(imgpath);
+
+% Создание нового имени файла
+output_filename = strrep([name, ext], '.png', '_processed.png');
+
+% Создание полного пути к новому файлу
+output_path = fullfile(filepath, output_filename);
+
+% Вывод пути к сохраненному изображению
+disp(['Output path: ', output_path]);
+
+thresh_par = 25;
+oct_num = 4;
+scales_num = 7;
+
+sign_class = result;
+
+Origfiles = dir(strcat('original13/', string(sign_class)));
+dirIndex1 = [Origfiles.isdir];
+fileList_orig = {Origfiles(~dirIndex1).name}';
+
+I2=imread(output_path);
+I2 = rgb2gray(I2);
+
+count_orig = size(fileList_orig);
+s1 = count_orig(1);
+
+crits = load(strcat("criterion/", string(sign_class), ".txt"));
+
+crit_c = 0;
+
+for j = 1:s1
+  I1=imread(strcat('original13/', string(sign_class), '/', fileList_orig{j}));
+  I1 = rgb2gray(I1);
+  points1 = detectSURFFeatures(I1, "MetricThreshold", thresh_par, "NumOctaves", oct_num, "NumScaleLevels", scales_num);
+  total_points = size(points1);
+  total_points = total_points(1);
+  [f1,vpts1] = extractFeatures(I1,points1, 'Method', 'SURF');
+
+  points2 = detectSURFFeatures(I2, "MetricThreshold", thresh_par, "NumOctaves", oct_num, "NumScaleLevels", scales_num);
+  [f2,vpts2] = extractFeatures(I2,points2, 'Method', 'SURF');
+  indexPairs = matchFeatures(f1,f2, "Unique", true, "MatchThreshold", 20, "MaxRatio", 0.5);
+  matches = size(indexPairs);
+  H_g = matches(1);
+
+  if (H_g >= crits(j, 1))
+    crit_c = crit_c + 1;
+  else
+    crit_c = crit_c - 1;
+  end
+end
+
+%matchedPoints1 = vpts1(indexPairs(:,1));
+%matchedPoints2 = vpts2(indexPairs(:,2));
+%figure;
+%showMatchedFeatures(I1, I2, matchedPoints1, matchedPoints2, Method = 'montage', PlotOptions = {'ro', 'ro', 'b-'});
+if (crit_c > 0)
+  %title("Подлинная подпись");
+  text = "Подлинная подпись";
+  assignin('base', 'text', text);
+else
+  %title("Поддельная подпись");
+  text = "Поддельная подпись";
+  assignin('base', 'text', text);
+end
+
+disp("Верификация закончена.")
+
+
